@@ -11,6 +11,7 @@ import com.example.keycloak.Springboot_KeyCloak.repository.MenuItemRepository;
 import com.example.keycloak.Springboot_KeyCloak.repository.MenuRepository;
 import com.example.keycloak.Springboot_KeyCloak.repository.RestaurantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,59 +24,63 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/restaurant")
 //@SecurityRequirement(name = "Keycloak")
 public class RestaurantController {
-	
-	@Autowired
-	RestaurantRepository restaurantRepository;
-	
-	@Autowired
-	MenuRepository menuRepository;
-	
-	@Autowired
-	MenuItemRepository menuItemRepository;
 
-	@GetMapping
-	@RequestMapping("/public/list")
-	//Public API
-	public List<Restaurant> getRestaurants() {
+    @Autowired
+    RestaurantRepository restaurantRepository;
+
+    @Autowired
+    MenuRepository menuRepository;
+
+    @Autowired
+    MenuItemRepository menuItemRepository;
+
+    @GetMapping
+    @RequestMapping("/public/list")
+    //Public API
+    public List<Restaurant> getRestaurants() {
         return restaurantRepository.findAll();
     }
-	
-	@GetMapping
-	@RequestMapping("/public/menu/{restaurantId}")
-	//Public API
-	public Menu getMenu(@PathVariable Long restaurantId) {
+
+    @GetMapping
+    @RequestMapping("/public/menu/{restaurantId}")
+    //Public API
+    public Menu getMenu(@PathVariable Long restaurantId) {
         Menu menu = menuRepository.findByRestaurantId(restaurantId);
         menu.setMenuItems(menuItemRepository.findAllByMenuId(menu.id));
         return menu;
     }
-	
-	@PostMapping
-	// admin can access (admin)
-	public Restaurant createRestaurant(Restaurant restaurant) {
+
+    @PostMapping
+    // admin can access (admin)
+	@PreAuthorize("hasRole('admin')")
+    public Restaurant createRestaurant(Restaurant restaurant) {
         return restaurantRepository.save(restaurant);
     }
-	
-	@PutMapping
-	// manager can access (suresh)
+
+    @PutMapping
+    // manager can access (suresh)
+	@PreAuthorize("hasRole('manager')")
 	public Restaurant updateRestaurant(Restaurant restaurant) {
         return restaurantRepository.save(restaurant);
     }
-	
-	@PostMapping
-	@RequestMapping("/menu")
-	// manager can access (suresh)
+
+    @PostMapping
+    @RequestMapping("/menu")
+    // manager can access (suresh)
+	@PreAuthorize("hasRole('manager')")
 	public Menu createMenu(Menu menu) {
-		menuRepository.save(menu);
+        menuRepository.save(menu);
         menu.getMenuItems().forEach(menuItem -> {
             menuItem.setMenuId(menu.id);
             menuItemRepository.save(menuItem);
         });
         return menu;
     }
-	
-	@PutMapping
-	@RequestMapping("/menu/item/{itemId}/{price}")
-	// owner can access (amar)
+
+    @PutMapping
+    @RequestMapping("/menu/item/{itemId}/{price}")
+    // owner can access (amar)
+	@PreAuthorize("hasRole('owner')")
 	public MenuItem updateMenuItemPrice(@PathVariable("itemId") Long itemId
             , @PathVariable("price") BigDecimal price) {
         Optional<MenuItem> menuItem = menuItemRepository.findById(itemId);
