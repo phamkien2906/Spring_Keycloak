@@ -10,6 +10,7 @@ import com.example.keycloak.Springboot_KeyCloak.entity.Restaurant;
 import com.example.keycloak.Springboot_KeyCloak.repository.MenuItemRepository;
 import com.example.keycloak.Springboot_KeyCloak.repository.MenuRepository;
 import com.example.keycloak.Springboot_KeyCloak.repository.RestaurantRepository;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/restaurant")
-//@SecurityRequirement(name = "Keycloak")
+@SecurityRequirement(name = "Keycloak")
 public class RestaurantController {
 
     @Autowired
@@ -52,14 +53,12 @@ public class RestaurantController {
 
     @PostMapping
     // admin can access (admin)
-	@PreAuthorize("hasRole('admin')")
     public Restaurant createRestaurant(Restaurant restaurant) {
         return restaurantRepository.save(restaurant);
     }
 
     @PutMapping
     // manager can access (suresh)
-	@PreAuthorize("hasRole('manager')")
 	public Restaurant updateRestaurant(Restaurant restaurant) {
         return restaurantRepository.save(restaurant);
     }
@@ -67,7 +66,6 @@ public class RestaurantController {
     @PostMapping
     @RequestMapping("/menu")
     // manager can access (suresh)
-	@PreAuthorize("hasRole('manager')")
 	public Menu createMenu(Menu menu) {
         menuRepository.save(menu);
         menu.getMenuItems().forEach(menuItem -> {
@@ -80,7 +78,6 @@ public class RestaurantController {
     @PutMapping
     @RequestMapping("/menu/item/{itemId}/{price}")
     // owner can access (amar)
-	@PreAuthorize("hasRole('owner')")
 	public MenuItem updateMenuItemPrice(@PathVariable("itemId") Long itemId
             , @PathVariable("price") BigDecimal price) {
         Optional<MenuItem> menuItem = menuItemRepository.findById(itemId);
