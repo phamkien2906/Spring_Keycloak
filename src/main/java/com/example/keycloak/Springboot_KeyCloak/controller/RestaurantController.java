@@ -11,8 +11,11 @@ import com.example.keycloak.Springboot_KeyCloak.repository.MenuItemRepository;
 import com.example.keycloak.Springboot_KeyCloak.repository.MenuRepository;
 import com.example.keycloak.Springboot_KeyCloak.repository.RestaurantRepository;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.keycloak.representations.AccessToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -79,7 +82,10 @@ public class RestaurantController {
     @RequestMapping("/menu/item/{itemId}/{price}")
     // owner can access (amar)
 	public MenuItem updateMenuItemPrice(@PathVariable("itemId") Long itemId
-            , @PathVariable("price") BigDecimal price) {
+            , @PathVariable("price") BigDecimal price
+            , @AuthenticationPrincipal Jwt jwt) {
+        String name = jwt.getClaim(AccessToken.PREFERRED_USERNAME);
+        String id = jwt.getSubject();
         Optional<MenuItem> menuItem = menuItemRepository.findById(itemId);
         menuItem.get().setPrice(price);
         menuItemRepository.save(menuItem.get());
